@@ -1,43 +1,40 @@
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-
-# Create your models here.
+from django.contrib.auth.models import User
 
 
 class Category(models.Model):
-
-    name = models.CharField("Категория поста", max_length=150)
-    discription = models.TextField("Описание", max_length=255)
-    url = models.SlugField(max_length=160, unique=True)
+    title = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.name
+        return self.title
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
 
-class User(models.Model):
-    name = models.CharField("Имя", max_length=25)
-    last_name = models.CharField("Фамилия", max_length=25)
-    age = models.PositiveSmallIntegerField("Возраст", default=0)
-    discription = models.TextField("Описание", max_length=200)
-    image = models.ImageField("Изображение", upload_to='user/')
-    email = models.EmailField("Почта", unique=True)
 
-    def __str__(self):
-        return self.name
+class Like(models.Model):
+    user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
 
-class Post(models.Model):
+class Posts(models.Model):
     title = models.CharField("Название", max_length=255)
     image = models.ImageField("Изображение", upload_to='post/')
-    discription = models.TextField("Описание", max_length=500)
-    user = models.ForeignKey(User, verbose_name='user', related_name='post_creator', on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, verbose_name='category', on_delete=models.SET_NULL, null=True)
-    url = models.SlugField(max_length=160, unique=True)
+    discription = models.TextField("Описание")
+    published = models.BooleanField(default=True)
+    views = models.IntegerField(default=0, verbose_name='Просмотры')
+    category = models.ForeignKey(Category, verbose_name='Категории', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
+    likes = GenericRelation(Like)
+
+    @property
+    def total_likes(self):
+        return self.likes.count()
 
     def __str__(self):
         return self.title
@@ -46,41 +43,27 @@ class Post(models.Model):
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
 
-class RatingStar(models.Model):
-
-    value = models.PositiveSmallIntegerField("Значение", default=0)
-
-    def __str__(self):
-        return self.value
-
-    class Meta:
-        verbose_name = "Звезда рейтинга"
-        verbose_name_plural = "Звезды рейтинга"
 
 
-class Rating(models.Model):
+class LikeDislike(models.Model):
+    like = models.BooleanField()
+    dislike = models.BooleanField()
+    post = models.ForeignKey(Posts, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    ip = models.CharField("IP адрес", max_length=15)
-    star = models.ForeignKey(RatingStar, on_delete=models.CASCADE, verbose_name="звезда" )
-    post = models.ForeignKey(Post, on_delete=models.CharField, verbose_name="пост")
+    # def __str__(self):
+    #     return self
 
-    def __str__(self):
-        return f"{self.star}-{self.post}"
 
-    class Meta:
-        verbose_name = "Рейтинг"
-        verbose_name_plural = "Рейтинги"
-
-class Commemt(models.Model):
-
-    email = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField("Имя", max_length=100)
-    text = models.TextField("Текст", max_length=5000)
-    parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
-    post = models.ForeignKey(Post, verbose_name="пост", on_delete=models.CASCADE)
+class Comments(models.Model):
+    description = models.CharField("Комментарии", max_length=1000)
+    created = models.DateTimeField(auto_now_add=True)
+    post = models.ForeignKey(Posts, on_delete=models.CASCADE)
+    author_comment = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, )
 
     def __str__(self):
-        return f"{self.name}-{self.post}"
+        return self.description
 
     class Meta:
         verbose_name = "Комментарий"

@@ -1,23 +1,34 @@
 from rest_framework import generics, permissions, status, pagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-
 from .serializers import *
 
-
-class Logout(APIView):
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
 
 
 class Pagination(pagination.PageNumberPagination):
     page_size = 10
-    max_page_size = 1000
+    max_page_size = 5000
+
+
+class Like(APIView):
+
+    model = Posts
+    serializer_class = LikeDislikeSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def post(self, request, pk):
+        posts = Posts.objects.get(pk=pk)
+        is_like = request.POST.get("like_or_dislike")
+        posts.add_like(request=request, post=posts, is_like=is_like.lower())
+        return Response(status=status.HTTP_200_OK)
+
+
+class Logout(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request):
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 class PostsListView(generics.ListAPIView):
@@ -28,7 +39,7 @@ class PostsListView(generics.ListAPIView):
 class PostsRetrieveView(generics.RetrieveAPIView):
     queryset = Posts.objects.all()
     serializer_class = PostsSerializer
-
+    permission_classes = [permissions.IsAuthenticated]
 
 class PostsCreateView(generics.CreateAPIView):
     queryset = Posts.objects.all()
@@ -104,12 +115,12 @@ class CommentsDestroyView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class LikeDislikeCreateView(generics.CreateAPIView):
-    queryset = LikeDislike.objects.all()
-    serializer_class = CreateLikeDislikeSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+class Stat(APIView):
+    serializer_class = StatisticSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+    queryset = ''
 
-
-class LikeDislikeListView(generics.ListAPIView):
-    queryset = LikeDislike.objects.all()
-    serializer_class = LikeDislikeSerializer
+    def post(self, request):
+        statistic = Statistics()
+        statistic.calculate_stat(request=request, )
+        return Response(status=status.HTTP_200_OK)

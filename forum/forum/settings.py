@@ -27,12 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'task',
     'rest_framework',
+    'task',
     'djoser',
-    'corsheaders',
-    # 'rest_framework.authtoken',
-    # 'rest_framework_jwt',
+    'rest_framework_swagger',
+    'docker',
+#     'rest_framework.authtoken',
+#     'rest_framework_jwt',
 
 ]
 
@@ -131,8 +132,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication"
-    ]
-
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
     # 'PAGE_SIZE': 10,
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     # 'rest_framework.authentication.TokenAuthentication',

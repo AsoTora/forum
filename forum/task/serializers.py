@@ -1,54 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Posts, Category, LikeDislike, Comments
-
-
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ['username', 'password']
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для CRUD категории"""
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-
-class PostsSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения постов"""
-    category = CategorySerializer()
-    author = UserSerializer()
-
-    class Meta:
-        model = Posts
-        exclude = ['published']
-
-
-class CreatePostsSerializer(serializers.ModelSerializer):
-    """Сериализатор для CRUD постов"""
-    class Meta:
-        model = Posts
-        fields = '__all__'
-
-
-class LikeDislikeSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображеня лайков и дизлайков"""
-    user = UserSerializer()
-    post = PostsSerializer()
-
-    class Meta:
-        model = LikeDislike
-        fields = '__all__'
-
-
-class CreateLikeDislikeSerializer(serializers.ModelSerializer):
-    """Сериализатор для CRUD лайков и дизлайков"""
-    class Meta:
-        model = LikeDislike
-        fields = '__all__'
+from .models import Posts, Category, LikeDislike, Comments, Statistics
 
 
 class RecursiveSerializer(serializers.ModelSerializer):
@@ -62,19 +14,63 @@ class RecursiveSerializer(serializers.ModelSerializer):
             return serializer.data
 
 
-class CommentsSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения комментов"""
-    author_comment = UserSerializer()
-    post = PostsSerializer()
-    parent = RecursiveSerializer()
-
+class CreateCommentsSerializer(serializers.ModelSerializer):
+    """Comments CRUD"""
     class Meta:
         model = Comments
         fields = '__all__'
 
 
-class CreateCommentsSerializer(serializers.ModelSerializer):
-    """Сериализатор для CRUD комментов"""
+class StatisticSerializer(serializers.ModelSerializer):
+    """Statistic"""
+    class Meta:
+        model = Statistics
+        fields = ['calculate_stat', ]
+
+class UserSerializer(serializers.ModelSerializer):
+    """User information"""
+    class Meta:
+        model = User
+        fields = ['username', 'password']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Categories CRUD"""
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class PostsSerializer(serializers.ModelSerializer):
+    """Posts information"""
+    category = CategorySerializer()
+    author = UserSerializer()
+
+    class Meta:
+        model = Posts
+        exclude = ['published']
+
+
+class CreatePostsSerializer(serializers.ModelSerializer):
+    """Posts CRUD"""
+    class Meta:
+        model = Posts
+        fields = '__all__'
+
+
+class LikeDislikeSerializer(serializers.ModelSerializer):
+    """Likes and dislikes"""
+
+    class Meta:
+        model = LikeDislike
+        fields = ['like_or_dislike', ]
+
+class CommentsSerializer(serializers.ModelSerializer):
+    """Comments view"""
+    author_comment = UserSerializer()
+    post = PostsSerializer()
+    parent = RecursiveSerializer()
+
     class Meta:
         model = Comments
         fields = '__all__'
